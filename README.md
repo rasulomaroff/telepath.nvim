@@ -1,6 +1,6 @@
 <h1 align="center">telepath.nvim</h1>
 
-Motion plugin you don't know you've been missing.
+<p align="center"><sup>Motion plugin you don't know you've been missing.</sup></p>
 
 > **telepathy**:
 >
@@ -18,26 +18,26 @@ Motion plugin you don't know you've been missing.
 -  Cursor restoration: return to your initial position after performing operations
 -  Recursion: support for recursive operations
 -  Search everywhere: `telepath.nvim` uses bidirectional search in all windows by default
+-  Textobjects: `telepath.nvim` doesn't create any textobjects. Instead, you can use all of yours.
 
 ## Why
 
 Why creating a new plugin when we already have [`leap-spooky.nvim`](https://github.com/ggandor/leap-spooky.nvim) or [`flash.nvim`](https://github.com/folke/flash.nvim)?
 
 First of all, for people who use `Leap` as their main jump engine instead of `flash`, but prefer flash's way to operate on remote textobjects. I personally also prefer flash's way
-just because you don't need to create custom mappings on every textobject you plan to operate remotely on. It also feels more natural and intuitive to type `dr` for `delete remote`, so
-your final combination will look like this `dr{search}iw` to delete a word and return back to your initial cursor position.
+just because you don't need to create custom mappings on every textobject you plan to operate remotely on. Most importantly, using this way of performing remote actions means that all of the textobjects (including ones from plugins or custom) you have are supported. It also feels more natural and intuitive to type `dr` for `delete remote`, so your final combination will look like this: `dr{search}iw` to delete a word and return back to your initial cursor position.
 
 In short, the main idea is to take the best of 2 worlds, for me that's:
 
 1. Leap's jump engine
 2. Flash's way of operating on remote textobjects
 
-### Differences from `leap-spooky.nvim`
+### Differences from leap-spooky.nvim
 
 - All textobjects are supported since `telepath.nvim` doesn't bring any new ones and only take you to a place in a file
 - Recursive operations
 
-### Differences from `flash.nvim`
+### Differences from flash.nvim
 
 There're almost no differences between `flash` and `telepath` except having recursive operations.
 
@@ -49,17 +49,38 @@ There're almost no differences between `flash` and `telepath` except having recu
 
 With lazy.nvim:
 
+To use default mappings:
+
 ```lua
 {
   'rasulomaroff/telepath.nvim',
   dependencies = 'ggandor/leap.nvim',
   -- there's no sence in using lazy loading since telepath won't load the main module
   -- until you actually use mappings
-  lazy = false
+  lazy = false,
+  config = function()
+    require('telepath').use_default_mappings()
+  end
 }
 ```
 
-## Usage
+To use custom mappings:
+
+```lua
+{
+  'rasulomaroff/telepath.nvim',
+  dependencies = 'ggandor/leap.nvim',
+  keys = {
+    -- you can use your own keys
+    { 'r', function() require('telepath').remote { restore = true } end, mode = 'o' },
+    { 'R', function() require('telepath').remote { restore = true, recursive = true } end, mode = 'o' },
+    { 'j', function() require('telepath').remote() end, mode = 'o' },
+    { 'J', function() require('telepath').remote { recursive = true } end, mode = 'o' }
+  }
+}
+```
+
+## Configuration
 
 ### Default mappings
 
@@ -103,7 +124,8 @@ There are 2 options available:
 require('telepath').remote {
   -- will restore your cursor after an operation, default is false
   restore = false,
-  -- will trigger leap mode with the same operator after every operation, until you press escape, default is false
+  -- will trigger leap mode with the same operator after every operation,
+  -- until you press escape, default is false
   recursive = false
 }
 ```
