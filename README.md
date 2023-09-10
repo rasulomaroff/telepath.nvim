@@ -12,6 +12,12 @@
 
 `telepath.nvim` is a [Leap](https://github.com/ggandor/leap.nvim) extension that allows you to operate on remote textobjects like built-in ones, from treesitter and any others.
 
+
+<h2 align="center">Demo</h2>
+
+https://github.com/rasulomaroff/telepath.nvim/assets/80093436/ba5f075c-6e56-4eef-ad7b-aa0499408bb6
+
+
 ## Features
 
 -  Jump: jump directly to a place you plan to operate from
@@ -128,4 +134,14 @@ require('telepath').remote {
   -- until you press escape, default is false
   recursive = false
 }
+```
+
+After that, set that function to your preferred key:
+
+```lua
+vim.keymap.set('o', 'r', function()
+  require('telepath').remote {
+    -- options
+  }
+end, { desc = 'Remote action' })
 ```
