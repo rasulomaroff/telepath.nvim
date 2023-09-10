@@ -15,7 +15,7 @@
 
 <h2 align="center">Demo</h2>
 
-https://github.com/rasulomaroff/telepath.nvim/assets/80093436/ba5f075c-6e56-4eef-ad7b-aa0499408bb6
+https://github.com/rasulomaroff/telepath.nvim/assets/80093436/e25033bb-2ec3-49d1-b879-0d53ff2e7653
 
 
 ## Features
