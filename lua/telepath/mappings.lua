@@ -5,7 +5,7 @@ local mappings = {
         end,
         'Remote action with cursor restoration',
     },
-    j = {
+    m = {
         function()
             require('telepath').remote()
         end,
@@ -17,7 +17,7 @@ local mappings = {
         end,
         'Recursive remote action with cursor restoration',
     },
-    J = {
+    M = {
         function()
             require('telepath').remote { recursive = true }
         end,
