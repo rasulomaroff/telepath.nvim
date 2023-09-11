@@ -80,8 +80,8 @@ To use custom mappings:
     -- you can use your own keys
     { 'r', function() require('telepath').remote { restore = true } end, mode = 'o' },
     { 'R', function() require('telepath').remote { restore = true, recursive = true } end, mode = 'o' },
-    { 'j', function() require('telepath').remote() end, mode = 'o' },
-    { 'J', function() require('telepath').remote { recursive = true } end, mode = 'o' }
+    { 'm', function() require('telepath').remote() end, mode = 'o' },
+    { 'M', function() require('telepath').remote { recursive = true } end, mode = 'o' }
   }
 }
 ```
@@ -93,9 +93,9 @@ To use custom mappings:
 All mappings are operator-pending mode only and listed below:
 
 1. `r` - stands for `restore` or `return`. Operates on remote textobject and return you back to the initial position.
-2. `j` - stands for `jump`. The same as `r`, but won't return you back to the initial position.
+2. `m` - stands for `magnet`. The same as `r`, but won't return you back to the initial position.
 3. `R` - stands for `restore recursive`. After performing any action, Leap's `search` mode will be triggered again with the same operator. You can exit this state by pressing escape and you'll be returned to your initial cursor position.
-4. `J` - the same as `R`, but won't return you to the initial position.
+4. `M` - the same as `R`, but won't return you to the initial position.
 
 To use default mappings, simply call `use_default_mappings` method:
 
@@ -113,7 +113,7 @@ If you only want to use certain default mappings, you can do it by passing `keys
 
 ```lua
 -- you can pass overwrite property here as well
-require('telepath').use_default_mappings { keys = { 'r', 'j' } }
+require('telepath').use_default_mappings { keys = { 'r', 'm' } }
 ```
 
 ### Custom mappings
