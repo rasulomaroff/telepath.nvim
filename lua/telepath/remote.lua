@@ -18,18 +18,14 @@ end
 
 ---@param opts telepath.RemoteParams
 function M.remote(opts)
+    opts = opts or {}
+
     M.jump(function(params)
-        -- setting a jumplist mark
-        vim.cmd 'normal! m`'
-
-        State:init(opts or {})
-
+        State:init(opts)
+        M.set_jumpmark()
         M.set_cursor(params.win, params.pos)
-
         State:sync_win(params.win)
-
         Util.exit()
-
         vim.schedule(M.watch)
     end)
 end
@@ -88,7 +84,6 @@ function M.restore()
 
     if not restore and State.restore then
         M.set_cursor(State.restore.source_win, Util.get_extmark(State.restore.anchor_id, State.restore.anchor_buf))
-
         State:clear()
     end
 end
@@ -98,8 +93,14 @@ end
 function M.set_cursor(win, pos)
     vim.api.nvim_set_current_win(win)
     vim.api.nvim_win_set_cursor(win, pos)
-    -- setting a jumplist mark
-    vim.cmd 'normal! m`'
+    M.set_jumpmark()
+end
+
+function M.set_jumpmark()
+    if State.jumplist then
+        -- setting a jumplist mark
+        vim.cmd 'normal! m`'
+    end
 end
 
 return M

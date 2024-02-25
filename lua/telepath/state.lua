@@ -9,7 +9,9 @@ function M:init(opts)
     self.input = self.input
         or (vim.v.count > 0 and vim.v.count or '') .. '"' .. vim.v.register .. vim.v.operator .. self.forced_motion
 
-    self.recursive = opts and opts.recursive
+    self.recursive = opts.recursive
+    -- setting it to true if not passed
+    self.jumplist = opts.jumplist == nil or opts.jumplist
 
     if not opts.restore then
         -- this can happen if after 'restore' keybinding another one without 'restore' field was used
@@ -45,6 +47,7 @@ function M:clear()
     self.input = nil
     self.last_win = nil
     self.forced_motion = nil
+    self.jumplist = nil
 end
 
 return M

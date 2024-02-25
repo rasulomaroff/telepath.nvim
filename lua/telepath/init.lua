@@ -1,6 +1,6 @@
 local M = {}
 
----@alias telepath.RemoteParams { restore?: boolean, recursive?: boolean }
+---@alias telepath.RemoteParams { restore?: boolean, recursive?: boolean, jumplist?: boolean }
 ---@alias telepath.MappingsParams { keys?: table<string>, overwrite?: boolean }
 
 ---@param ... telepath.RemoteParams
