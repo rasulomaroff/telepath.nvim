@@ -61,8 +61,7 @@ function M._seek_restoration()
 
     -- waiting for exiting insert mode, this can happen with 'c' operator
     if Util.is_insert(to) then
-        -- scheduling callback here to be sure that all popups from insert mode are already closed
-        Util.aucmd_once('ModeChanged', vim.schedule_wrap(M.restore), 'i*:*')
+        Util.aucmd_once('ModeChanged', M.restore, 'i*:*')
     else
         M.restore()
     end
