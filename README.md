@@ -86,7 +86,38 @@ To use custom mappings:
 }
 ```
 
+## Usage
+
+I would recommend reading [Leap's](https://github.com/ggandor/leap.nvim) documentation as well to have a full understanding of it, but together with `telepath` your usage will look like that:
+
+`dr{search}{textobject}`
+
+- `d` - this is an operator. In this case it's `delete`, but you can use any, even custom ones.
+- `r` - stands for `remote`. You can configure this key as well as you can configure the way it behaves. It must always go after an operator key.
+- `{search}` - this is a 2 or 3 key pattern to jump to the specific location you want to operate on. More about it in [Leap's](https://github.com/ggandor/leap.nvim) documentation.
+- `{textobject}` - this is a specific textobject you want to apply your operator on. For example `i(` - inside parentheses. You can use any textobject available in your configuration.
+
+Curly brackets in `search` and `textobject` are meant to emphasize semantic meaning, you don't need to use them.
+
 ## Configuration
+
+### Options
+
+There're 3 options you can pass to the `remote` method:
+
+1. `restore` - will restore your cursor to the original position after an operation. `Default: false`
+2. `recursive` - will trigger leap mode with the same operator after every operation. `Default: false`
+3. `jumplist` - will set jump points on every jump. `Default: true`
+
+Example:
+
+```lua
+require('telepath').remote {
+  restore = false,
+  recursive = false,
+  jumplist = true
+}
+```
 
 ### Default mappings
 
@@ -118,24 +149,7 @@ require('telepath').use_default_mappings { keys = { 'r', 'm' } }
 
 ### Custom mappings
 
-To create a custom mapping, you need to use `remote` method of the module, where you can pass additional params:
-
-```lua
-require('telepath').remote()
-```
-
-There are 2 options available:
-
-```lua
-require('telepath').remote {
-  -- will restore your cursor after an operation, default is false
-  restore = false,
-  -- will trigger leap mode with the same operator after every operation,
-  -- until you press escape, default is false
-  recursive = false
-}
-```
-
+To create a custom mapping, you need to use the `remote` method of the module, where you can pass optional [params](#options).
 After that, set that function to your preferred key:
 
 ```lua
