@@ -34,6 +34,10 @@ function M.aucmd_once(event, cb, pattern)
     })
 end
 
+function M.clear_aucmds()
+    vim.cmd 'au! telepath.nvim'
+end
+
 ---@param keys string
 ---@return string
 function M.termcodes(keys)
