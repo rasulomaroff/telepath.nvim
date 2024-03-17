@@ -92,7 +92,9 @@ end
 ---@param pos table<number>
 function M.set_cursor(win, pos)
     vim.api.nvim_set_current_win(win)
-    vim.api.nvim_win_set_cursor(win, pos)
+    -- Since the previous cursor position can be deleted from the buffer after performing an operation
+    -- we need to call this method with 'pcall' not to cause an error
+    pcall(vim.api.nvim_win_set_cursor, win, pos)
     M.set_jumpmark()
 end
 
