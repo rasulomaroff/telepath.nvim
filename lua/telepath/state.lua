@@ -31,6 +31,7 @@ function M:init(opts)
             anchor_buf = anchor_buf,
             anchor_id = anchor_id,
             source_win = source_win,
+            win = vim.fn.winsaveview(),
         }
     end
 end

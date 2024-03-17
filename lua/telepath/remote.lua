@@ -83,6 +83,8 @@ function M.restore()
     end
 
     if not restore and State.restore then
+        -- it's important to restore window first and then set the cursor
+        vim.fn.winrestview(State.restore.win)
         M.set_cursor(State.restore.source_win, Util.get_extmark(State.restore.anchor_id, State.restore.anchor_buf))
         State:clear()
     end
