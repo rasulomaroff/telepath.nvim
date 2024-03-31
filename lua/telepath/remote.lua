@@ -1,5 +1,5 @@
-local Util = require 'telepath.util'
-local State = require 'telepath.state'
+local U = require 'telepath.util'
+local S = require 'telepath.state'
 
 local M = {}
 
@@ -12,7 +12,7 @@ function M.jump(action)
 
             action { win = target.wininfo.winid, pos = target.pos }
         end,
-        target_windows = vim.tbl_filter(Util.is_focusable, vim.api.nvim_tabpage_list_wins(0)),
+        target_windows = vim.tbl_filter(U.is_focusable, vim.api.nvim_tabpage_list_wins(0)),
     }
 end
 
@@ -21,23 +21,23 @@ function M.remote(opts)
     opts = opts or {}
 
     M.jump(function(params)
-        State:init(opts)
+        S:init(opts)
         M.set_jumpmark()
         M.set_cursor(params.win, params.pos)
-        State:sync_win(params.win)
-        Util.exit()
+        S:sync_win(params.win)
+        U.exit()
         vim.schedule(M.watch)
     end)
 end
 
 function M.watch()
     -- restore operator, count, register, and forced motion if presented
-    Util.feed(State.input)
+    U.feed(S.input)
 
-    if State.restore or State.recursive then
-        Util.aucmd_once('ModeChanged', M.seek_restoration, ('no%s:*'):format(State.forced_motion))
+    if S.restore or S.recursive then
+        U.aucmd_once('ModeChanged', M.seek_restoration, ('no%s:*'):format(S.forced_motion))
     else
-        State:clear()
+        S:clear()
     end
 end
 
@@ -56,8 +56,8 @@ function M._seek_restoration()
     local to = vim.fn.mode(true)
 
     -- waiting for exiting insert mode, this can happen with 'c' operator
-    if Util.is_insert(to) then
-        Util.aucmd_once('ModeChanged', M.restore, 'i*:*')
+    if U.is_insert(to) then
+        U.aucmd_once('ModeChanged', M.restore, 'i*:*')
     else
         M.restore()
     end
@@ -66,27 +66,27 @@ end
 function M.restore()
     local restore = false
 
-    if State.recursive then
+    if S.recursive then
         M.jump(function(params)
             restore = true
 
             M.set_cursor(params.win, params.pos)
 
-            if params.win ~= State.last_win then
+            if params.win ~= S.last_win then
                 vim.schedule(M.watch)
             else
                 M.watch()
             end
 
-            State:sync_win(params.win)
+            S:sync_win(params.win)
         end)
     end
 
-    if not restore and State.restore then
-        -- it's important to restore window first and then set the cursor
-        vim.fn.winrestview(State.restore.win)
-        M.set_cursor(State.restore.source_win, Util.get_extmark(State.restore.anchor_id, State.restore.anchor_buf))
-        State:clear()
+    if not restore and S.restore then
+            -- it's important to restore window first and then set the cursor
+            vim.fn.winrestview(S.restore.win)
+        M.set_cursor(S.restore.source_win, U.get_extmark(S.restore.anchor_id, S.restore.anchor_buf))
+        S:clear()
     end
 end
 
@@ -101,7 +101,7 @@ function M.set_cursor(win, pos)
 end
 
 function M.set_jumpmark()
-    if State.jumplist then
+    if S.jumplist then
         -- setting a jumplist mark
         vim.cmd 'normal! m`'
     end
