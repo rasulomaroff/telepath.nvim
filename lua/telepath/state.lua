@@ -13,7 +13,7 @@ function M:init(opts)
     self.forced_motion = U.extract_forced_motion(vim.fn.mode(true))
 
     self.input = (vim.v.count > 0 and vim.v.count or '')
-        .. '"'
+        .. U.reg
         .. vim.v.register
         .. vim.v.operator
         .. self.forced_motion
@@ -23,7 +23,7 @@ function M:init(opts)
     self.jumplist = opts.jumplist == nil or opts.jumplist
 
     if opts.restore then
-        local source_win = vim.api.nvim_get_current_win()
+        local source_win = U.get_win()
         local anchor_buf = vim.api.nvim_get_current_buf()
         local anchor_id = U.set_extmark(anchor_buf, vim.api.nvim_win_get_cursor(source_win))
 

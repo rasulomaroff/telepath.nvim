@@ -3,6 +3,14 @@ local M = {}
 M.ns = vim.api.nvim_create_namespace 'telepath.nvim'
 M.augroup = vim.api.nvim_create_augroup('telepath.nvim', {})
 
+-- constants
+M.reg = '"'
+
+---@return number window_id
+function M.get_win()
+    return vim.api.nvim_get_current_win()
+end
+
 ---@param mode string
 ---@return boolean
 function M.is_insert(mode)
@@ -24,7 +32,7 @@ end
 
 ---@param event string
 ---@param cb fun(opts: table<string, any>)
----@param pattern string
+---@param pattern string?
 function M.aucmd_once(event, cb, pattern)
     return vim.api.nvim_create_autocmd(event, {
         once = true,
