@@ -16,6 +16,16 @@ function M.jump(action)
     }
 end
 
+local function save_next_view()
+    S.save_view()
+
+    -- if it's recursive, then we hang a listener (WinLeave) in the 'restore' method after the 'leap' is performed
+    -- because in other case the window will be restored while typing a leap pattern (probably because how Leap plugin works)
+    if not S.recursive then
+        U.au_once('WinLeave', S.rest_view)
+    end
+end
+
 ---@param opts telepath.RemoteParams
 function M.remote(opts)
     opts = opts or {}
@@ -23,9 +33,23 @@ function M.remote(opts)
     M.jump(function(params)
         S.init(opts)
         M.set_jumpmark()
+
+        -- if we're going into another window with 'restore' or 'recursive' option
+        -- then we'll save that window view to then restore it
+        -- because when we jump to that window, we can possibly scroll it
+        -- if the 'scrolloff' option is set and we're jumping to the top or bottom of the window
+        if S.restore or S.recursive then
+            if U.get_win() ~= params.win then
+                U.au_once('WinEnter', save_next_view)
+            else
+                S.save_view()
+            end
+        end
+
         U.exit()
         S.sync_win(params.win)
         M.set_cursor(params.win, params.pos)
+
         vim.schedule(M.watch)
     end)
 end
@@ -35,7 +59,7 @@ function M.watch()
     U.feed(S.input)
 
     if S.restore or S.recursive then
-        U.aucmd_once('ModeChanged', M.seek_restoration, ('no%s:*'):format(S.forced_motion))
+        U.au_once('ModeChanged', M.seek_restoration, ('no%s:*'):format(S.forced_motion))
     else
         S.clear()
     end
@@ -75,6 +99,11 @@ function M.restore_from_insert()
     return true
 end
 
+local function save_view_and_watch()
+    S.save_view()
+    M.watch()
+end
+
 function M.restore()
     local restore = false
 
@@ -83,7 +112,11 @@ function M.restore()
             restore = true
 
             if params.win ~= S.last_win then
-                vim.schedule(M.watch)
+                U.au_once('WinLeave', S.rest_view)
+
+                -- if we're going to another window, then we'll start observing
+                -- after entering it and save its view
+                U.au_once('WinEnter', save_view_and_watch)
             else
                 M.watch()
             end
@@ -93,10 +126,19 @@ function M.restore()
         end)
     end
 
-    if not restore and S.restore then
-            -- it's important to restore window first and then set the cursor
-            vim.fn.winrestview(S.restore.win)
-        M.set_cursor(S.restore.source_win, U.get_extmark(S.restore.anchor_id, S.restore.anchor_buf))
+    if not restore then
+        if S.restore then
+            -- if didn't jump to another window, then there won't be any event that tells us
+            -- that we need to restore a win view. In this case we have to check it manually
+            if U.get_win() == S.restore.source_win then
+                -- it's important to restore window first and then set the cursor
+                S.rest_view()
+            elseif S.recursive then
+                U.au_once('WinLeave', S.rest_view)
+            end
+            M.set_cursor(S.restore.source_win, U.get_extmark(S.restore.anchor_id, S.restore.anchor_buf))
+        end
+
         S.clear()
     end
 end

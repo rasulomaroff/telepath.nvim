@@ -27,7 +27,6 @@ function M.init(opts)
             anchor_buf = anchor_buf,
             anchor_id = anchor_id,
             source_win = source_win,
-            win = vim.fn.winsaveview(),
         }
     end
 end
@@ -50,7 +49,20 @@ function M.clear()
     M.last_win = nil
     M.forced_motion = nil
     M.jumplist = nil
+    M.clear_view()
 end
+
+function M.save_view()
+    M.win_view = vim.fn.winsaveview()
+end
+
+function M.rest_view()
+    vim.fn.winrestview(M.win_view)
+    M.clear_view()
+end
+
+function M.clear_view()
+    M.win_view = nil
 end
 
 return M

@@ -33,7 +33,7 @@ end
 ---@param event string
 ---@param cb fun(opts: table<string, any>)
 ---@param pattern string?
-function M.aucmd_once(event, cb, pattern)
+function M.au_once(event, cb, pattern)
     return vim.api.nvim_create_autocmd(event, {
         once = true,
         group = M.augroup,
