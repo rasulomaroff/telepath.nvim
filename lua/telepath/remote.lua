@@ -57,10 +57,22 @@ function M._seek_restoration()
 
     -- waiting for exiting insert mode, this can happen with 'c' operator
     if U.is_insert(to) then
-        U.aucmd_once('ModeChanged', M.restore, 'i*:*')
+        -- if someone knows how I can pass a pattern that matches everything
+        -- except niI mode, PRs are very welcome!
+        U.au('ModeChanged', M.restore_from_insert, 'i*:*')
     else
         M.restore()
     end
+end
+
+function M.restore_from_insert()
+    if vim.v.event.new_mode == 'niI' then
+        return
+    end
+
+    vim.schedule(M.restore)
+    --  delete autocmd
+    return true
 end
 
 function M.restore()

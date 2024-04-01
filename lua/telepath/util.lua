@@ -42,6 +42,17 @@ function M.aucmd_once(event, cb, pattern)
     })
 end
 
+---@param event string
+---@param cb fun(opts: table<string, any>)
+---@param pattern string?
+function M.au(event, cb, pattern)
+    return vim.api.nvim_create_autocmd(event, {
+        group = M.augroup,
+        callback = cb,
+        pattern = pattern,
+    })
+end
+
 function M.clear_aucmds()
     vim.cmd 'au! telepath.nvim'
 end
