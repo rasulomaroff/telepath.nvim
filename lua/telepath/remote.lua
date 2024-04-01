@@ -21,11 +21,11 @@ function M.remote(opts)
     opts = opts or {}
 
     M.jump(function(params)
-        S:init(opts)
+        S.init(opts)
         M.set_jumpmark()
-        M.set_cursor(params.win, params.pos)
-        S:sync_win(params.win)
         U.exit()
+        S.sync_win(params.win)
+        M.set_cursor(params.win, params.pos)
         vim.schedule(M.watch)
     end)
 end
@@ -37,7 +37,7 @@ function M.watch()
     if S.restore or S.recursive then
         U.aucmd_once('ModeChanged', M.seek_restoration, ('no%s:*'):format(S.forced_motion))
     else
-        S:clear()
+        S.clear()
     end
 end
 
@@ -70,15 +70,14 @@ function M.restore()
         M.jump(function(params)
             restore = true
 
-            M.set_cursor(params.win, params.pos)
-
             if params.win ~= S.last_win then
                 vim.schedule(M.watch)
             else
                 M.watch()
             end
 
-            S:sync_win(params.win)
+            M.set_cursor(params.win, params.pos)
+            S.sync_win(params.win)
         end)
     end
 
@@ -86,7 +85,7 @@ function M.restore()
             -- it's important to restore window first and then set the cursor
             vim.fn.winrestview(S.restore.win)
         M.set_cursor(S.restore.source_win, U.get_extmark(S.restore.anchor_id, S.restore.anchor_buf))
-        S:clear()
+        S.clear()
     end
 end
 
