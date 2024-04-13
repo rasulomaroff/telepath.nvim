@@ -25,27 +25,19 @@ https://github.com/rasulomaroff/telepath.nvim/assets/80093436/e25033bb-2ec3-49d1
 -  Recursion: support for recursive operations
 -  Search everywhere: `telepath.nvim` uses bidirectional search in all windows by default
 -  Textobjects: `telepath.nvim` doesn't create any textobjects. Instead, you can use all of yours.
+-  Window restoration: you can turn on/off window restoration for a source window, other windows or for all of them.
 
 ## Why
 
 Why creating a new plugin when we already have [`leap-spooky.nvim`](https://github.com/ggandor/leap-spooky.nvim) or [`flash.nvim`](https://github.com/folke/flash.nvim)?
 
-First of all, for people who use `Leap` as their main jump engine instead of `flash`, but prefer flash's way to operate on remote textobjects. I personally also prefer flash's way
+First of all, `telepath` is for people who use `Leap` as their main jump engine instead of `flash`, but prefer flash's way to operate on remote textobjects. I personally also prefer flash's way
 just because you don't need to create custom mappings on every textobject you plan to operate remotely on. Most importantly, using this way of performing remote actions means that all of the textobjects (including ones from plugins or custom) you have are supported. It also feels more natural and intuitive to type `dr` for `delete remote`, so your final combination will look like this: `dr{search}iw` to delete a word and return back to your initial cursor position.
 
 In short, the main idea is to take the best of 2 worlds, for me that's:
 
 1. Leap's jump engine
 2. Flash's way of operating on remote textobjects
-
-### Differences from leap-spooky.nvim
-
-- All textobjects are supported since `telepath.nvim` doesn't bring any new ones and only take you to a place in a file
-- Recursive operations
-
-### Differences from flash.nvim
-
-There're almost no differences between `flash` and `telepath` except having recursive operations.
 
 ## Requirements
 
@@ -103,11 +95,13 @@ Curly brackets in `search` and `textobject` are meant to emphasize semantic mean
 
 ### Options
 
-There're 3 options you can pass to the `remote` method:
+There're 4 options you can pass to the `remote` method:
 
 1. `restore` - will restore your cursor to the original position after an operation. `Default: false`
 2. `recursive` - will trigger leap mode with the same operator after every operation. `Default: false`
 3. `jumplist` - will set jump points on every jump. `Default: true`
+4. `window_restore` - will restore windows when leaving them or after a remote action. You can pass either a boolean to enable/disable all windows restorations or a table `{ source = true, rest = true }` where
+`source` means "restore a source window" and `rest` - "restore all windows except a source one". `Default: true` - enabled for all windows.
 
 Example:
 
@@ -115,7 +109,9 @@ Example:
 require('telepath').remote {
   restore = false,
   recursive = false,
-  jumplist = true
+  jumplist = true,
+  -- only restore other windows, but not the source one
+  window_restore = { source = false, rest = true } -- you can also pass true/false to enable/disable all of the options
 }
 ```
 
@@ -143,7 +139,7 @@ require('telepath').use_default_mappings { overwrite = true }
 If you only want to use certain default mappings, you can do it by passing `keys` field:
 
 ```lua
--- you can pass overwrite property here as well
+-- you can pass  the `overwrite` property here as well
 require('telepath').use_default_mappings { keys = { 'r', 'm' } }
 ```
 
