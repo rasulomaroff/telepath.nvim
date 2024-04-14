@@ -53,6 +53,12 @@ function M.au(event, cb, pattern)
     })
 end
 
+---@param name string
+---@param data table
+function M.exec_au(name, data)
+    vim.api.nvim_exec_autocmds('User', { pattern = 'Telepath' .. name, data = data })
+end
+
 function M.clear_aucmds()
     vim.cmd 'au! telepath.nvim'
 end

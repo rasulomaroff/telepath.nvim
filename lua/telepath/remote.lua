@@ -19,9 +19,12 @@ end
 ---@param opts telepath.RemoteParams
 function M.remote(opts)
     opts = opts or {}
+    S.init(opts)
+    local jumped = false
 
+    M.run_hook 'Enter'
     M.jump(function(target)
-        S.init(opts)
+        jumped = true
 
         -- if we're going into another window with 'restore' or 'recursive' option and we have any window restoration
         -- then we'll save that window view to then restore it
@@ -32,12 +35,6 @@ function M.remote(opts)
 
                     if S.has_specific_restoration 'rest' then
                         S.save_view()
-
-                        -- if it's recursive, then we hang a listener (WinLeave) in the 'restore' method after the 'leap' is performed
-                        -- because in other case the window will be restored while typing a leap pattern (probably because how Leap plugin works)
-                        if not S.recursive then
-                            U.au_once('WinLeave', S.restore_view)
-                        end
                     end
                 end)
             elseif S.has_specific_restoration 'source' then
@@ -49,10 +46,17 @@ function M.remote(opts)
         -- setting a jumpmark before jumping
         M.set_jumpmark()
 
+        M.run_hook 'JumpPre'
         M.set_cursor(target.win, target.pos)
+        M.run_hook 'Jump'
 
         vim.schedule(M.watch)
     end)
+
+    if not jumped then
+        M.run_hook 'Leave'
+        S.clear()
+    end
 end
 
 function M.watch()
@@ -63,6 +67,7 @@ function M.watch()
     if S.restore or S.recursive then
         U.au_once('ModeChanged', M.seek_restoration, ('no%s:*'):format(S.forced_motion))
     else
+        M.run_hook 'Leave'
         S.clear()
     end
 end
@@ -111,7 +116,7 @@ function M.restore()
                     S.current_win == S.source_win and S.has_specific_restoration 'source'
                     or S.current_win ~= S.source_win and S.has_specific_restoration 'rest'
                 then
-                    U.au_once('WinLeave', S.restore_view)
+                    U.au_once('WinLeave', M.restore_winview)
                 end
 
                 -- if we're going to another window, then we'll start observing
@@ -132,26 +137,58 @@ function M.restore()
                 M.watch()
             end
 
+            M.run_hook 'JumpPre'
             M.set_cursor(target.win, target.pos)
+            M.run_hook 'Jump'
         end)
     end
 
     if not jumped then
         if S.restore then
-            -- if didn't jump to another window, then there won't be any event that tells us
-            -- that we need to restore a win view. In this case we have to check it manually
-            if S.current_win == S.source_win then
-                if S.has_specific_restoration 'source' then
-                    -- it's important to restore window first and then set the cursor
-                    S.restore_view()
+            local skipped = false
+
+            M.run_hook('RestorePre', {
+                cancel_restoration = function()
+                    skipped = true
+                end,
+            })
+
+            if not skipped then
+                -- if didn't jump to another window, then there won't be any event that tells us
+                -- that we need to restore a win view. In this case we have to check it manually
+                if S.current_win == S.source_win then
+                    if S.has_specific_restoration 'source' then
+                        -- it's important to restore window first and then set the cursor
+                        M.restore_winview()
+                    end
+                elseif (S.recursive or S.restore) and S.has_specific_restoration 'rest' then
+                    U.au_once('WinLeave', M.restore_winview)
                 end
-            elseif S.recursive and S.has_specific_restoration 'rest' then
-                U.au_once('WinLeave', S.restore_view)
+
+                M.set_cursor(S.source_win, U.get_extmark(S.restore.anchor_id, S.restore.anchor_buf))
+                M.run_hook 'Restore'
             end
-            M.set_cursor(S.source_win, U.get_extmark(S.restore.anchor_id, S.restore.anchor_buf))
         end
 
+        M.run_hook 'Leave'
         S.clear()
+    end
+end
+
+function M.restore_winview()
+    local skipped = false
+
+    M.run_hook('WindowRestorePre', {
+        cancel_window_restoration = function()
+            skipped = true
+        end,
+    })
+
+    if skipped then
+        S.clear_view()
+    else
+        S.restore_view()
+        M.run_hook 'WindowRestore'
     end
 end
 
@@ -170,6 +207,29 @@ function M.set_jumpmark()
         -- setting a jumplist mark
         vim.cmd.normal { 'm`', bang = true }
     end
+end
+
+---@param name string
+---@param cbs table<string, fun()>?
+function M.run_hook(name, cbs)
+    local payload = {
+        opts = {
+            action = {
+                count = S.action.count,
+                register = S.action.register,
+                operator = S.action.operator,
+                remap = S.action.remap,
+                regtype = S.action.regtype,
+            },
+            restore = type(S.restore) == 'table',
+            window_restore = S.window_restore,
+            recursive = S.recursive == true,
+            jumplist = S.jumplist == true,
+        },
+        fn = cbs,
+    }
+
+    U.exec_au(name, payload)
 end
 
 return M
