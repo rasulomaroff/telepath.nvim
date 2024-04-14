@@ -57,7 +57,8 @@ end
 
 function M.watch()
     -- restore operator, count, register, and forced motion if presented
-    U.feed(S.input)
+    local input, mode = S.get_input()
+    U.feed(input, mode)
 
     if S.restore or S.recursive then
         U.au_once('ModeChanged', M.seek_restoration, ('no%s:*'):format(S.forced_motion))

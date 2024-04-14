@@ -8,15 +8,29 @@ local M = {
 
 ---@param opts telepath.RemoteParams
 function M.init(opts)
-    -- if there's the input, it means that this function was evoked while the previous 'remote' call was active
-    if M.input then
+    -- if there's an action, it means that this function was evoked while the previous 'remote' call was active
+    if M.action then
         U.clear_aucmds()
         M.clear()
     end
 
     M.forced_motion = U.extract_forced_motion(vim.fn.mode(true))
 
-    M.input = (vim.v.count > 0 and vim.v.count or '') .. U.reg .. vim.v.register .. vim.v.operator .. M.forced_motion
+    M.action = {
+        feed_mode = 'n',
+        count = vim.v.count,
+        register = vim.v.register,
+        operator = vim.v.operator,
+        regtype = U.extract_forced_motion(vim.fn.mode(true)),
+    }
+
+    if opts.remap and opts.remap[M.action.operator] then
+        M.action.feed_mode = 'm'
+
+        if type(opts.remap[M.action.operator]) == 'string' then
+            M.action.operator = opts.remap[M.action.operator]
+        end
+    end
 
     M.recursive = opts.recursive
 
@@ -44,6 +58,17 @@ function M.init(opts)
     end
 end
 
+---@return string input
+---@return string feed_mode
+function M.get_input()
+    return (M.action.count > 0 and M.action.count or '')
+        .. U.reg
+        .. M.action.register
+        .. M.action.operator
+        .. M.action.regtype,
+        M.action.feed_mode
+end
+
 ---@param win number
 function M.sync_win(win)
     M.current_win = win
@@ -56,12 +81,12 @@ function M.clear()
 
     M.recursive = nil
     M.restore = nil
-    M.input = nil
     M.current_win = nil
     M.forced_motion = nil
     M.jumplist = nil
     M.window_restore = nil
     M.source_win = nil
+    M.action = nil
     M.clear_view()
 end
 
