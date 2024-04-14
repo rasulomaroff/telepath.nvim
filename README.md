@@ -95,13 +95,14 @@ Curly brackets in `search` and `textobject` are meant to emphasize semantic mean
 
 ### Options
 
-There're 4 options you can pass to the `remote` method:
+There're 5 options you can pass to the `remote` method:
 
 1. `restore` - will restore your cursor to the original position after an operation. `Default: false`
 2. `recursive` - will trigger leap mode with the same operator after every operation. `Default: false`
 3. `jumplist` - will set jump points on every jump. `Default: true`
 4. `window_restore` - will restore windows when leaving them or after a remote action. You can pass either a boolean to enable/disable all windows restorations or a table `{ source = true, rest = true }` where
 `source` means "restore a source window" and `rest` - "restore all windows except a source one". `Default: true` - enabled for all windows.
+5. `remap` - will use your own mapping instead of a neovim's default one. For example, if you have your own mapping for `y` key, which uses neovim's default `y` operator and does some additional things or maybe you use this operator provided by a plugin. Not used by default.
 
 Example:
 
@@ -111,7 +112,11 @@ require('telepath').remote {
   recursive = false,
   jumplist = true,
   -- only restore other windows, but not the source one
-  window_restore = { source = false, rest = true } -- you can also pass true/false to enable/disable all of the options
+  window_restore = { source = false, rest = true }, -- you can also pass true/false to enable/disable all of the options
+  remap = {
+    y = true, -- just put `true` to use a remapped version
+    d = 'x' -- you can remap it to use another key that should do the same operation, but with additional side-effects
+  }
 }
 ```
 
