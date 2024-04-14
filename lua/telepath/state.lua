@@ -27,9 +27,8 @@ function M.init(opts)
     if opts.remap and opts.remap[M.action.operator] then
         M.action.feed_mode = 'm'
 
-        if type(opts.remap[M.action.operator]) == 'string' then
-            M.action.operator = opts.remap[M.action.operator]
-        end
+        M.action.remap = type(opts.remap[M.action.operator]) == 'string' and opts.remap[M.action.operator]
+            or M.action.operator
     end
 
     M.recursive = opts.recursive
@@ -64,7 +63,7 @@ function M.get_input()
     return (M.action.count > 0 and M.action.count or '')
         .. U.reg
         .. M.action.register
-        .. M.action.operator
+        .. (M.action.remap or M.action.operator)
         .. M.action.regtype,
         M.action.feed_mode
 end
