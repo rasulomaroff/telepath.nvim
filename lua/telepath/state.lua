@@ -55,6 +55,8 @@ function M.init(opts)
 
         M.restore = { anchor_buf = anchor_buf, anchor_id = anchor_id }
     end
+
+    M.hooks = opts.hooks
 end
 
 ---@return string input
@@ -86,6 +88,7 @@ function M.clear()
     M.window_restore = nil
     M.source_win = nil
     M.action = nil
+    M.hooks = nil
     M.clear_view()
 end
 

@@ -229,6 +229,13 @@ function M.run_hook(name, cbs)
         fn = cbs,
     }
 
+    -- transform camel case into snake case
+    local transformed = name:gsub('(%u%l*)', '_%1'):sub(2):lower()
+
+    if S.hooks and S.hooks[transformed] then
+        S.hooks[transformed](payload)
+    end
+
     U.exec_au(name, payload)
 end
 
