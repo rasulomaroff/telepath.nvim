@@ -2,7 +2,10 @@ local U = require 'telepath.util'
 
 local M = {
     default = {
-        window_restore = { source = true, rest = true },
+        window_restore = {
+            source = 'view',
+            rest = 'view',
+        },
     },
 }
 
@@ -36,14 +39,12 @@ function M.init(opts)
     -- setting it to true if not passed
     M.jumplist = opts.jumplist == nil or opts.jumplist
 
-    -- if window_restore wasn't passed or equals to true, then we consider it
-    -- to be restoring all the windows
-    if opts.window_restore == nil or opts.window_restore == true then
+    if opts.window_restore == nil or opts.window_restore == 'view' then
         M.window_restore = M.default.window_restore
-    elseif opts.window_restore == false then
-        M.window_restore = { source = false, rest = false }
-    else
+    elseif type(opts.window_restore) == 'table' then
         M.window_restore = vim.tbl_extend('force', M.default.window_restore, opts.window_restore)
+    else
+        M.window_restore = { source = opts.window_restore, rest = opts.window_restore }
     end
 
     M.source_win = U.get_win()
@@ -98,8 +99,8 @@ end
 
 --- @return boolean
 function M.has_any_restoration()
-    for _, restore in pairs(M.window_restore) do
-        if restore then
+    for type in pairs(M.window_restore) do
+        if M.has_specific_restoration(type) then
             return true
         end
     end
@@ -110,6 +111,11 @@ end
 --- @param type 'source' | 'rest'
 --- @return boolean
 function M.has_specific_restoration(type)
+    return M.get_restoration_strategy(type) ~= nil
+end
+
+--- @param type 'source' | 'rest' | false
+function M.get_restoration_strategy(type)
     return M.window_restore[type]
 end
 

@@ -17,7 +17,8 @@ local M = {}
 ---@field restore_pre? fun(payload: { opts: telepath.HookPayload, fn: { cancel_restoration: fun() } })
 ---@field restore? fun(payload: { opts: telepath.HookPayload })
 
----@alias telepath.WindowRestoreParams { source?: boolean, rest?: boolean }
+---@alias telepath.WindowRestoreStrategy 'view' | 'cursor'
+---@alias telepath.WindowRestoreParams { source?: telepath.WindowRestoreStrategy, rest?: telepath.WindowRestoreStrategy }
 ---@alias telepath.RemoteParams { restore?: boolean, recursive?: boolean, jumplist?: boolean, window_restore?: boolean | telepath.WindowRestoreParams, remap?: table<string, boolean | string>, hooks?: telepath.Hooks }
 ---@alias telepath.MappingsParams { keys?: table<string>, overwrite?: boolean }
 
