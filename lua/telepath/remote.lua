@@ -112,11 +112,20 @@ function M.restore()
             jumped = true
 
             if target.win ~= S.current_win then
-                if
-                    S.current_win == S.source_win and S.has_specific_restoration 'source'
-                    or S.current_win ~= S.source_win and S.has_specific_restoration 'rest'
-                then
-                    U.au_once('WinLeave', M.restore_winview)
+                local win_type
+
+                if S.current_win == S.source_win then
+                    if S.has_specific_restoration 'source' then
+                        win_type = 'source'
+                    end
+                elseif S.has_specific_restoration 'rest' then
+                    win_type = 'rest'
+                end
+
+                if win_type then
+                    U.au_once('WinLeave', function()
+                        M.restore_winview(win_type)
+                    end)
                 end
 
                 -- if we're going to another window, then we'll start observing
@@ -159,10 +168,12 @@ function M.restore()
                 if S.current_win == S.source_win then
                     if S.has_specific_restoration 'source' then
                         -- it's important to restore window first and then set the cursor
-                        M.restore_winview()
+                        M.restore_winview 'source'
                     end
                 elseif (S.recursive or S.restore) and S.has_specific_restoration 'rest' then
-                    U.au_once('WinLeave', M.restore_winview)
+                    U.au_once('WinLeave', function()
+                        M.restore_winview 'rest'
+                    end)
                 end
 
                 M.set_cursor(S.source_win, U.get_extmark(S.restore.anchor_id, S.restore.anchor_buf))
@@ -175,7 +186,8 @@ function M.restore()
     end
 end
 
-function M.restore_winview()
+---@param win_type 'source' | 'rest'
+function M.restore_winview(win_type)
     local skipped = false
 
     M.run_hook('WindowRestorePre', {
@@ -187,7 +199,15 @@ function M.restore_winview()
     if skipped then
         S.clear_view()
     else
-        S.restore_view()
+        local restore_strategy = S.get_restoration_strategy(win_type)
+
+        if restore_strategy == 'cursor' then
+            vim.api.nvim_win_set_cursor(0, { S.winview.lnum, S.winview.col })
+            S.clear_view()
+        else
+            S.restore_view()
+        end
+
         M.run_hook 'WindowRestore'
     end
 end
