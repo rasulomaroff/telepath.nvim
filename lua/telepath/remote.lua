@@ -168,7 +168,9 @@ function M.restore()
                 if S.current_win == S.source_win then
                     if S.has_specific_restoration 'source' then
                         -- it's important to restore window first and then set the cursor
-                        M.restore_winview 'source'
+                        -- we don't call `WindowRestore` events when restoring a source window,
+                        -- because we have `Restore` event instead and it can create confusions
+                        M.restore_winview('source', true)
                     end
                 elseif (S.recursive or S.restore) and S.has_specific_restoration 'rest' then
                     U.au_once('WinLeave', function()
@@ -187,14 +189,17 @@ function M.restore()
 end
 
 ---@param win_type 'source' | 'rest'
-function M.restore_winview(win_type)
+---@param force_skip? boolean
+function M.restore_winview(win_type, force_skip)
     local skipped = false
 
-    M.run_hook('WindowRestorePre', {
-        cancel_window_restoration = function()
-            skipped = true
-        end,
-    })
+    if not force_skip then
+        M.run_hook('WindowRestorePre', {
+            cancel_window_restoration = function()
+                skipped = true
+            end,
+        })
+    end
 
     if skipped then
         S.clear_view()
@@ -208,7 +213,9 @@ function M.restore_winview(win_type)
             S.restore_view()
         end
 
-        M.run_hook 'WindowRestore'
+        if not force_skip then
+            M.run_hook 'WindowRestore'
+        end
     end
 end
 
