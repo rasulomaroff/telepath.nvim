@@ -95,14 +95,17 @@ Curly brackets in `search` and `textobject` are meant to emphasize semantic mean
 
 ### Options
 
-There're 5 options you can pass to the `remote` method:
+There're 6 options you can pass to the `remote` method:
 
 1. `restore` - will restore your cursor to the original position after an operation. `Default: false`
 2. `recursive` - will trigger leap mode with the same operator after every operation. `Default: false`
 3. `jumplist` - will set jump points on every jump. `Default: true`
-4. `window_restore` - will restore windows when leaving them or after a remote action. You can pass either a boolean to enable/disable all windows restorations or a table `{ source = true, rest = true }` where
-`source` means "restore a source window" and `rest` - "restore all windows except a source one". `Default: true` - enabled for all windows.
+4. `window_restore` - will restore windows when leaving them or after a remote action. You can pass either a string to specify a restore strategy for all windows, you can pass `false` to disable restoration in all windows, or a table `{ source = 'cursor' | 'view' | false, rest = 'cursor' | 'view' | false }` where `source` means a strategy for a source window and `rest` - for all windows except a source one. `Default: 'view'`.
+Possible strategies:
+  - `view` - restore a window view together with a cursor state
+  - `cursor` - restore only a cursor state
 5. `remap` - will use your own mapping instead of a neovim's default one. For example, if you have your own mapping for `y` key, which uses neovim's default `y` operator and does some additional things or maybe you use this operator provided by a plugin. Not used by default.
+6. `hooks` - a table of hooks that will be called during the flow. You can also use [user commands](#user-commands). Possible hooks are the same as user commands, but with snake case instead: `enter`, `leave`, `jump_pre`, `jump`, `window_restore_pre`, `window_restore`, `restore_pre`, `restore`. All rules that are applied to user commands also applied for hooks, meaning that you can cancel restoration or use the data that's passed as a first argument.
 
 Example:
 
@@ -112,10 +115,72 @@ require('telepath').remote {
   recursive = false,
   jumplist = true,
   -- only restore other windows, but not the source one
-  window_restore = { source = false, rest = true }, -- you can also pass true/false to enable/disable all of the options
+  window_restore = { source = false, rest = 'view' },
   remap = {
     y = true, -- just put `true` to use a remapped version
     d = 'x' -- you can remap it to use another key that should do the same operation, but with additional side-effects
+  },
+  hooks = {
+    restore_pre = function(data)
+      if true then
+        data.fn.cancel_restoration()
+      end
+    end
+  }
+}
+```
+
+### User commands
+
+`telepath` has a set of user commands that will be executed during the flow.
+
+- `TelepathEnter` - called as soon as you evoke `telepath`.
+- `TelepathLeave` - called after all the operations.
+- `TelepathJumpPre` - called before jumping. Will be called on each jump when the `recursive` option is passed as true. Not called when returning a cursor back to the initial position.
+- `TelepathJump` - called right after jumping. Will be called on each jump when the `recursive` option is passed as true. Not called when returning a cursor back to the initial position.
+- `TelepathWindowRestorePre` - called before a window is restored. You can cancel window restoration here. Not called when restoring a source window.
+- `TelepathWindowRestore` - called after a window was restored. Not called when restoring a source window.
+- `TelepathRestorePre` - called before `telepath` restores the cursor to the initial position (only when `restore=true` in the `remote()` method). You can cancel restoration here.
+- `TelepathRestore` - called after `telepath` restores the cursor to the inital position.
+
+Example:
+
+```lua
+vim.api.nvim_create_autocmd('User', {
+  pattern = 'TelepathEnter',
+  callback = function(args)
+    -- here's the data that's passed to each user command/hook
+    vim.print(args.data)
+  end
+})
+```
+
+To each user command (as well as to each hook) this data is passed:
+
+```lua
+{
+  opts: {
+    action: {
+      count: number,
+      register: string,
+      operator: string,
+      regtype: string,
+      remap?: string
+    },
+    restore: boolean,
+    window_restore: {
+      source: 'view' | 'cursor' | false,
+      rest: 'view' | 'cursor' | false
+    },
+    recursive: boolean,
+    jumplist: boolean
+  },
+  -- this field is only passed to `TelepathWindowRestorePre` and `TelepathRestorePre` commands
+  fn: {
+    -- only passed to `TelepathWindowRestorePre` command
+    cancel_window_restoration: fun(),
+    -- only passed to `TelepathRestorePre` command
+    cancel_restoration: fun()
   }
 }
 ```
